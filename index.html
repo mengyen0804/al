@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <title>采芝早餐 點餐系統 3.0</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      max-width: 800px;
+      margin: auto;
+      padding: 20px;
+      background-color: #fffbea;
+    }
+    h1 {
+      color: #4a4a4a;
+    }
+    h2 {
+      margin-top: 30px;
+      color: #333;
+      border-bottom: 1px solid #ccc;
+    }
+    .item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 6px 0;
+    }
+    .section {
+      margin-bottom: 20px;
+    }
+    #total {
+      font-weight: bold;
+      margin-top: 20px;
+      font-size: 20px;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: #f59e0b;
+      color: white;
+      border: none;
+      cursor: pointer;
+      border-radius: 6px;
+    }
+    input[type="text"], select {
+      padding: 6px;
+      margin-left: 10px;
+    }
+    .controls {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+    input[type="number"] {
+      width: 50px;
+    }
+  </style>
+</head>
+<body>
+  <h1>☀️ 采芝早餐 點餐系統 3.0</h1>
+  <form id="orderForm">
+    <label>👤 姓名：
+      <input type="text" id="name" required />
+    </label>
+
+    <div id="menu"></div>
+
+    <label>📝 備註：
+      <input type="text" id="note" placeholder="例如：去冰、不要加辣、加醬爆" />
+    </label>
+
+    <div id="total">總金額：$0</div>
+
+    <button type="submit">送出訂單 🛒</button>
+  </form>
+
+  <p id="result" style="color: green; margin-top: 15px;"></p>
+
+  <script>
+    const menuData = {
+      "吐司類": {
+        "草莓吐司": 20, "奶油吐司": 20, "花生吐司": 20, "巧克力吐司": 20,
+        "吐司夾蛋": 30, "火腿蛋吐司": 40, "鮪魚蛋吐司": 45, "肉鬆蛋吐司": 45,
+        "法國吐司": 50, "漢堡肉夾蛋吐司": 50
+      },
+      "厚片類": {
+        "花生厚片": 35, "草莓厚片": 35, "奶油厚片": 35, "巧克力厚片": 35,
+        "奶酥厚片": 40, "蒜味厚片": 40, "起司厚片": 40, "鮪魚厚片": 45
+      },
+      "壽司 / 飯糰類": {
+        "特製素食飯糰": 45, "特製紫米飯糰": 50, "招牌紫米燒肉飯糰": 65
+      },
+      "三明治類": {
+        "全麥素三明治": 30, "肉鬆三明治": 30, "鮪魚三明治": 30, "火腿三明治": 30,
+        "起司水果三明治": 55, "鮪魚總匯三明治": 55, "招牌燒肉總匯三明治": 60
+      },
+      "蛋餅類": {
+        "古早味羅蔔糕": 35, "原味蛋餅": 30, "青蔥蛋餅": 35, "芝麻蛋餅": 40,
+        "火腿蛋餅": 40, "肉鬆蛋餅": 45, "鮪魚蛋餅": 45, "起司蛋餅": 45,
+        "蔬菜蛋餅": 45, "玉米蛋餅": 45, "培根蛋餅": 50, "招牌燒肉蛋餅": 60
+      },
+      "飲料類": {
+        "紅茶小": 20, "紅茶大": 40, "紅茶豆漿小": 20, "紅茶豆漿大": 40,
+        "養生黃豆漿小": 20, "養生黃豆將大": 40, "養生黑豆漿小": 25, "養生黑豆漿大": 50,
+        "山藥五穀米漿小": 25, "山藥五穀米漿大": 50, "鮮奶紅茶小": 25, "鮮奶紅茶大": 50,
+        "咖啡牛奶小": 40, "咖啡牛奶大": 80
+      }
+    };
+
+    const menuDiv = document.getElementById("menu");
+    const totalDisplay = document.getElementById("total");
+
+    function renderMenu() {
+      for (const [category, items] of Object.entries(menuData)) {
+        const section = document.createElement("div");
+        section.className = "section";
+        const title = document.createElement("h2");
+        title.textContent = category;
+        section.appendChild(title);
+
+        for (const [item, price] of Object.entries(items)) {
+          const wrapper = document.createElement("div");
+          wrapper.className = "item";
+
+          const label = document.createElement("label");
+          label.textContent = `${item} - $${price}`;
+
+          const controls = document.createElement("div");
+          controls.className = "controls";
+
+          const quantityInput = document.createElement("input");
+          quantityInput.type = "number";
+          quantityInput.min = 0;
+          quantityInput.max = 10;
+          quantityInput.value = 0;
+          quantityInput.setAttribute("data-price", price);
+          quantityInput.setAttribute("data-item", item);
+          quantityInput.addEventListener("change", updateTotal);
+
+          controls.appendChild(quantityInput);
+
+          if (category === "飲料類") {
+            const tempSelect = document.createElement("select");
+            tempSelect.innerHTML = `
+              <option value="">選冰/溫</option>
+              <option value="冰">冰</option>
+              <option value="溫">溫</option>`;
+            tempSelect.setAttribute("data-item", item);
+            controls.appendChild(tempSelect);
+          }
+
+          wrapper.appendChild(label);
+          wrapper.appendChild(controls);
+          section.appendChild(wrapper);
+        }
+
+        menuDiv.appendChild(section);
+      }
+    }
+
+    function updateTotal() {
+      let total = 0;
+      document.querySelectorAll('input[type="number"]').forEach(input => {
+        const qty = parseInt(input.value) || 0;
+        const price = parseInt(input.getAttribute("data-price")) || 0;
+        total += qty * price;
+      });
+      totalDisplay.textContent = `總金額：$${total}`;
+    }
+
+    renderMenu();
+
+    const form = document.getElementById("orderForm");
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const name = document.getElementById("name").value;
+      const note = document.getElementById("note").value;
+
+      let orders = [];
+      let total = 0;
+
+      document.querySelectorAll('input[type="number"]').forEach(input => {
+        const qty = parseInt(input.value);
+        if (qty > 0) {
+          const item = input.getAttribute("data-item");
+          const price = parseInt(input.getAttribute("data-price"));
+          const parent = input.closest(".item");
+          const select = parent.querySelector("select");
+          const temp = select ? select.value : "";
+          const label = temp ? `${item}（${temp}） x${qty} ($${price * qty})` : `${item} x${qty} ($${price * qty})`;
+          orders.push(label);
+          total += price * qty;
+        }
+      });
+
+      const res = await fetch("YOUR_WORKER_URL", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, order: orders.join(", "), note, total })
+      });
+
+      if (res.ok) {
+        document.getElementById("result").textContent = "✅ 訂單送出成功！";
+        form.reset();
+        updateTotal();
+      } else {
+        document.getElementById("result").textContent = "❌ 發生錯誤，請稍後再試。";
+      }
+    });
+  </script>
+</body>
+</html>
