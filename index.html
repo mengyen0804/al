@@ -255,7 +255,8 @@ window.addEventListener("DOMContentLoaded", () => {
 
 // 送出訂單時特效動畫
 const orderForm = document.getElementById("orderForm");
-orderForm.addEventListener("submit", (e) => {
+orderForm.addEventListener("submit", async (e) => {
+  e.preventDefault();
   const button = document.querySelector(".fixed-submit button");
   button.style.transform = "scale(1.1)";
   setTimeout(() => {
@@ -278,6 +279,39 @@ orderForm.addEventListener("submit", (e) => {
     emoji.style.opacity = 0;
   }, 50);
   setTimeout(() => emoji.remove(), 1200);
+
+  // 訂單送出
+  const name = document.getElementById("name").value;
+  const note = document.getElementById("note").value;
+  let orders = [];
+  let total = 0;
+  document.querySelectorAll('input[type="number"]').forEach(input => {
+    const qty = parseInt(input.value);
+    if (qty > 0) {
+      const item = input.getAttribute("data-item");
+      const price = parseInt(input.getAttribute("data-price"));
+      const parent = input.closest(".item");
+      const select = parent.querySelector("select");
+      const temp = select ? select.value : "";
+      const label = temp ? `${item}（${temp}） x${qty} ($${price * qty})` : `${item} x${qty} ($${price * qty})`;
+      orders.push(label);
+      total += qty * price;
+    }
+  });
+  const res = await fetch("https://script.google.com/macros/s/AKfycbw77tJFMnEIj3B_XaAeYcQ_fXJ_GXLWms0AnAbL7TOL9q0MO5w_4zL77V8YoArq8BzU/exec", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name, order: orders.join(", "), note, total })
+  });
+  const result = document.getElementById("result");
+  if (res.ok) {
+    result.textContent = "✅ 訂單送出成功！感謝光臨 ✨";
+    orderForm.reset();
+    updateTotal();
+  } else {
+    result.textContent = "❌ 發送失敗，請再試一次 🙇‍♀️";
+  }
+});
 });
 
 // 高亮已選項 + 顯示小計
@@ -353,3 +387,4 @@ function updatePreviewList() {
 </script>
 </body>
 </html>
+
