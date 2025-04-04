@@ -1,29 +1,44 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
+  
   <meta charset="UTF-8" />
   <title>采芝早餐 點餐系統 3.0</title>
   <style>
     body {
-      font-family: sans-serif;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      
       max-width: 800px;
       margin: auto;
       padding: 20px;
-      background-color: #fffbea;
+      background: linear-gradient(to bottom, #fffbea, #fff5e1);
+      color: #4a3c2f;
     }
     h1 {
-      color: #4a4a4a;
+      color: #ffffff;
+      background-color: #f59e0b;
+      padding: 20px;
+      border-radius: 8px;
+      text-align: center;
+      font-weight: bold;
+      font-size: 28px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
     }
     h2 {
       margin-top: 30px;
-      color: #333;
-      border-bottom: 1px solid #ccc;
+      background-color: #d4e9e2;
+      color: #00704a;
+      font-size: 20px;
+      padding: 10px;
+      border-radius: 6px;
+      border-left: 6px solid #f59e0b;
     }
     .item {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 6px 0;
+      padding: 12px;
+      border-bottom: 1px solid #ccc;
     }
     .section {
       margin-bottom: 20px;
@@ -31,20 +46,33 @@
     #total {
       font-weight: bold;
       margin-top: 20px;
-      font-size: 20px;
+      font-size: 22px;
+      color: #ffffff;
+      background-color: #00704a;
+      padding: 12px;
+      border-radius: 6px;
+      text-align: center;
     }
     button {
-      padding: 10px 20px;
+      padding: 14px 28px;
       font-size: 16px;
-      background-color: #f59e0b;
-      color: white;
+      background-color: #00704a;
+      color: #ffffff;
       border: none;
-      cursor: pointer;
       border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background 0.3s ease;
+    }
+    button:hover {
+      background-color: #1e3932;
+    }
+    button:hover {
+      background-color: #eab308;
     }
     input[type="text"], select {
-      padding: 6px;
-      margin-left: 10px;
+      font-size: 1.1em;
+      padding: 4px 8px;
     }
     .controls {
       display: flex;
@@ -52,7 +80,9 @@
       align-items: center;
     }
     input[type="number"] {
-      width: 50px;
+      width: 70px;
+      font-size: 1.2em;
+      padding: 4px 6px;
     }
   </style>
 </head>
@@ -66,44 +96,50 @@
     <div id="menu"></div>
 
     <label>📝 備註：
-      <input type="text" id="note" placeholder="例如：去冰、不要加辣、加醬爆" />
+      <input type="text" id="note" placeholder="例如：要加辣或醬油" />
     </label>
 
     <div id="total">總金額：$0</div>
 
+    <div class="section" id="preview" style="font-size: 2vw; line-height: 1.6; color: #5a5a5a; margin-top: 20px;">
+      <strong>🛍️ 您目前選擇：</strong><br>
+      <div id="previewList" style="max-height: 120px; overflow-y: auto; padding-right: 6px;"></div>
+    </div>
+
     <button type="submit">送出訂單 🛒</button>
   </form>
 
-  <p id="result" style="color: green; margin-top: 15px;"></p>
+  <p id="result" style="margin-top: 20px; font-size: 1.2em; font-weight: bold; padding: 12px; text-align: center; border-radius: 8px; display: none;"></p>
 
   <script>
     const menuData = {
       "吐司類": {
-        "草莓吐司": 20, "奶油吐司": 20, "花生吐司": 20, "巧克力吐司": 20,
-        "吐司夾蛋": 30, "火腿蛋吐司": 40, "鮪魚蛋吐司": 45, "肉鬆蛋吐司": 45,
-        "法國吐司": 50, "漢堡肉夾蛋吐司": 50
+        "🍓 草莓吐司": 20, "🧈 奶油吐司": 20, "🥜 花生吐司": 20, "🍫 巧克力吐司": 20,
+        "🍳 吐司夾蛋": 30, "🥩 火腿蛋吐司": 40, "🐟 鮪魚蛋吐司": 45, "🐷 肉鬆蛋吐司": 45,
+        "🍞 法國吐司": 50, "🍔 漢堡肉夾蛋吐司": 50
       },
       "厚片類": {
-        "花生厚片": 35, "草莓厚片": 35, "奶油厚片": 35, "巧克力厚片": 35,
-        "奶酥厚片": 40, "蒜味厚片": 40, "起司厚片": 40, "鮪魚厚片": 45
+        "🥜 花生厚片": 35, "🍓 草莓厚片": 35, "🧈 奶油厚片": 35, "🍫 巧克力厚片": 35,
+        "🥯 奶酥厚片": 40, "🧄 蒜味厚片": 40, "🧀 起司厚片": 40, "🐟 鮪魚厚片": 45
       },
       "壽司 / 飯糰類": {
-        "特製素食飯糰": 45, "特製紫米飯糰": 50, "招牌紫米燒肉飯糰": 65
+        "🐷 肉鬆壽司": 0, "🐟 鮪魚壽司": 0, "🥬 素食壽司": 0, "🌸 特製花壽司": 0,
+        "🥬 特製素食飯糰": 45, "🍙 特製紫米飯糰": 50, "🔥 招牌紫米燒肉飯糰": 65
       },
       "三明治類": {
-        "全麥素三明治": 30, "肉鬆三明治": 30, "鮪魚三明治": 30, "火腿三明治": 30,
-        "起司水果三明治": 55, "鮪魚總匯三明治": 55, "招牌燒肉總匯三明治": 60
+        "🥬 全麥素三明治": 30, "🐷 肉鬆三明治": 30, "🐟 鮪魚三明治": 30, "🥩 火腿三明治": 30,
+        "🍓 起司水果三明治": 55, "🐟 鮪魚總匯三明治": 55, "🔥 招牌燒肉總匯三明治": 60
       },
       "蛋餅類": {
-        "古早味羅蔔糕": 35, "原味蛋餅": 30, "青蔥蛋餅": 35, "芝麻蛋餅": 40,
-        "火腿蛋餅": 40, "肉鬆蛋餅": 45, "鮪魚蛋餅": 45, "起司蛋餅": 45,
-        "蔬菜蛋餅": 45, "玉米蛋餅": 45, "培根蛋餅": 50, "招牌燒肉蛋餅": 60
+        "🧁 古早味羅蔔糕": 35, "🍳 原味蛋餅": 30, "🧅 青蔥蛋餅": 35, "⚫ 芝麻蛋餅": 40,
+        "🥩 火腿蛋餅": 40, "🐷 肉鬆蛋餅": 45, "🐟 鮪魚蛋餅": 45, "🧀 起司蛋餅": 45,
+        "🥬 蔬菜蛋餅": 45, "🌽 玉米蛋餅": 45, "🥓 培根蛋餅": 50, "🔥 招牌燒肉蛋餅": 60
       },
       "飲料類": {
-        "紅茶小": 20, "紅茶大": 40, "紅茶豆漿小": 20, "紅茶豆漿大": 40,
-        "養生黃豆漿小": 20, "養生黃豆將大": 40, "養生黑豆漿小": 25, "養生黑豆漿大": 50,
-        "山藥五穀米漿小": 25, "山藥五穀米漿大": 50, "鮮奶紅茶小": 25, "鮮奶紅茶大": 50,
-        "咖啡牛奶小": 40, "咖啡牛奶大": 80
+        "🍵 紅茶小": 20, "🍵 紅茶大": 40, "🥤 紅茶豆漿小": 20, "🥤 紅茶豆漿大": 40,
+        "🟡 養生黃豆漿小": 20, "🟡 養生黃豆將大": 40, "⚫ 養生黑豆漿小": 25, "⚫ 養生黑豆漿大": 50,
+        "🌾 山藥五穀米漿小": 25, "🌾 山藥五穀米漿大": 50, "🥛 鮮奶紅茶小": 25, "🥛 鮮奶紅茶大": 50,
+        "☕ 咖啡牛奶小": 40, "☕ 咖啡牛奶大": 80
       }
     };
 
@@ -124,6 +160,8 @@
 
           const label = document.createElement("label");
           label.textContent = `${item} - $${price}`;
+          label.style.fontWeight = "bold";
+          label.style.fontSize = "clamp(16px, 4.5vw, 22px)";
 
           const controls = document.createElement("div");
           controls.className = "controls";
@@ -160,12 +198,24 @@
 
     function updateTotal() {
       let total = 0;
+      const preview = document.getElementById("previewList");
+      let lines = [];
       document.querySelectorAll('input[type="number"]').forEach(input => {
         const qty = parseInt(input.value) || 0;
         const price = parseInt(input.getAttribute("data-price")) || 0;
-        total += qty * price;
+        const item = input.getAttribute("data-item");
+        if (qty > 0) {
+          total += qty * price;
+          const parent = input.closest(".item");
+          const select = parent.querySelector("select");
+          const temp = select && select.value ? `（${select.value}）` : "";
+          lines.push(`${item}${temp} x${qty}（$${price * qty}）`);
+        }
       });
       totalDisplay.textContent = `總金額：$${total}`;
+      preview.innerHTML = lines.length
+        ? lines.map((line, index) => `<div>${line} <button type='button' onclick='removeItem(${index})' style='margin-left: 8px; background: none; border: none; color: red; font-weight: bold; cursor: pointer;'>✕</button></div>`).join("")
+        : "（尚未選擇餐點）";
     }
 
     renderMenu();
@@ -200,15 +250,36 @@
       });
 
       if (res.ok) {
-        document.getElementById("result").textContent = "✅ 訂單送出成功！";
+        const resultEl = document.getElementById("result");
+        resultEl.textContent = "✅ 訂單送出成功！";
+        resultEl.style.backgroundColor = "#d1fae5";
+        resultEl.style.color = "#065f46";
+        resultEl.style.display = "block";
         form.reset();
         updateTotal();
       } else {
-        document.getElementById("result").textContent = "❌ 發生錯誤，請稍後再試。";
+        const resultEl = document.getElementById("result");
+        resultEl.textContent = "❌ 發生錯誤，請稍後再試。";
+        resultEl.style.backgroundColor = "#fee2e2";
+        resultEl.style.color = "#991b1b";
+        resultEl.style.display = "block";
       }
     });
+  function removeItem(index) {
+      const inputs = Array.from(document.querySelectorAll('input[type="number"]'));
+      let counter = 0;
+      for (const input of inputs) {
+        const qty = parseInt(input.value);
+        if (qty > 0) {
+          if (counter === index) {
+            input.value = 0;
+            updateTotal();
+            break;
+          }
+          counter++;
+        }
+      }
+    }
   </script>
 </body>
 </html>
-
-
