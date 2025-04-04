@@ -2,20 +2,22 @@
 <html lang="zh-TW">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>🍓 采芝早餐 點餐系統・可愛融合版</title>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC&display=swap" rel="stylesheet">
   <style>
     body {
       font-family: 'Noto Sans TC', sans-serif;
       background: linear-gradient(#fff7f0, #ffe6e6);
-      padding: 30px;
+      padding: 20px;
       color: #4a3c3c;
       max-width: 800px;
       margin: auto;
+      padding-bottom: 100px; /* 為固定按鈕留空間 */
     }
     h1 {
       text-align: center;
-      font-size: 28px;
+      font-size: 6vw;
       color: #d44b79;
       background-color: #fff0f5;
       border-radius: 20px;
@@ -30,7 +32,7 @@
       box-shadow: 0 1px 4px rgba(0,0,0,0.1);
     }
     h2 {
-      font-size: 20px;
+      font-size: 5vw;
       margin-bottom: 10px;
       color: #f27c9c;
     }
@@ -53,25 +55,37 @@
       padding: 6px 10px;
       border: 1px solid #ccc;
       border-radius: 10px;
+      font-size: 4vw;
+      max-width: 100%;
     }
     input[type="number"] {
-      width: 50px;
+      width: 60px;
     }
-    button {
+    .fixed-submit {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      background: #fff0f5;
+      padding: 10px 0;
+      box-shadow: 0 -2px 6px rgba(0,0,0,0.1);
+      z-index: 999;
+    }
+    .fixed-submit button {
       background-color: #ff90b3;
       color: white;
       border: none;
       border-radius: 30px;
-      padding: 10px 20px;
-      font-size: 18px;
+      padding: 15px 30px;
+      font-size: 5vw;
       cursor: pointer;
       display: block;
-      margin: 20px auto;
+      margin: auto;
       box-shadow: 0 2px 6px rgba(0,0,0,0.2);
     }
     #total {
       text-align: center;
-      font-size: 20px;
+      font-size: 5vw;
       font-weight: bold;
       color: #d44b79;
       margin-top: 15px;
@@ -79,12 +93,20 @@
     #result {
       text-align: center;
       margin-top: 20px;
-      font-size: 16px;
+      font-size: 4vw;
+    }
+    @media (min-width: 600px) {
+      h1 { font-size: 28px; }
+      h2 { font-size: 20px; }
+      input, select { font-size: 16px; }
+      .fixed-submit button, button { font-size: 18px; }
+      #total { font-size: 20px; }
+      #result { font-size: 16px; }
     }
   </style>
 </head>
 <body>
-  <h1>🍞 采芝早餐 點餐系統・可愛融合版 🧋</h1>
+  <h1>🍞 采芝早餐 點餐系統・可愛融合版 🥤</h1>
   <form id="orderForm">
     <div class="section">
       <label>👤 姓名：<input type="text" id="name" required /></label>
@@ -97,10 +119,11 @@
     </div>
 
     <div id="total">🍡 總金額：$0</div>
-    <button type="submit">✨ 送出訂單 ✨</button>
     <p id="result"></p>
   </form>
-
+  <div class="fixed-submit">
+    <button type="submit" form="orderForm">✨ 送出訂單 ✨</button>
+  </div>
   <script>
     const menuData = {
       "🍞 吐司類": {
@@ -124,7 +147,7 @@
         "火腿蛋餅": 40, "肉鬆蛋餅": 45, "鮪魚蛋餅": 45, "起司蛋餅": 45,
         "蔬菜蛋餅": 45, "玉米蛋餅": 45, "培根蛋餅": 50, "招牌燒肉蛋餅": 60
       },
-      "🧋 飲料類": {
+      "🥤 飲料類": {
         "紅茶小": 20, "紅茶大": 40, "紅茶豆漿小": 20, "紅茶豆漿大": 40,
         "養生黃豆漿小": 20, "養生黃豆將大": 40, "養生黑豆漿小": 25, "養生黑豆漿大": 50,
         "山藥五穀米漿小": 25, "山藥五穀米漿大": 50, "鮮奶紅茶小": 25, "鮮奶紅茶大": 50,
@@ -144,12 +167,31 @@
         title.textContent = category;
         section.appendChild(title);
 
+        const quantityHeader = document.createElement("div");
+        quantityHeader.style.display = "flex";
+        quantityHeader.style.justifyContent = "space-between";
+        quantityHeader.style.fontSize = "4vw";
+        quantityHeader.style.margin = "4px 0 8px";
+        quantityHeader.style.fontWeight = "bold";
+        quantityHeader.style.color = "#888";
+
+        const leftLabel = document.createElement("span");
+        leftLabel.textContent = "品項";
+        const rightLabel = document.createElement("span");
+        rightLabel.textContent = category.includes("飲料") ? "數量 / 冰溫" : "數量";
+
+        quantityHeader.appendChild(leftLabel);
+        quantityHeader.appendChild(rightLabel);
+        section.appendChild(quantityHeader);
+
         for (const [item, price] of Object.entries(items)) {
           const wrapper = document.createElement("div");
           wrapper.className = "item";
 
           const label = document.createElement("label");
           label.textContent = `${item} - $${price}`;
+          label.style.fontWeight = "bold";
+          label.style.fontSize = "4.5vw";
 
           const quantity = document.createElement("input");
           quantity.type = "number";
@@ -192,43 +234,87 @@
 
     renderMenu();
 
-    document.getElementById("orderForm").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const name = document.getElementById("name").value;
-      const note = document.getElementById("note").value;
-      let total = 0;
-      let order = [];
+// 自動預設飲料為冰
+window.addEventListener("DOMContentLoaded", () => {
+  document.querySelectorAll("select").forEach(select => {
+    if (select.options.length > 1) select.value = "冰";
+  });
+});
 
-      document.querySelectorAll('input[type="number"]').forEach(input => {
-        const qty = parseInt(input.value);
-        if (qty > 0) {
-          const item = input.getAttribute("data-item");
-          const price = parseInt(input.getAttribute("data-price"));
-          const parent = input.closest(".item");
-          const select = parent.querySelector("select");
-          const temp = select ? select.value : "";
-          const label = temp ? `${item}（${temp}） x${qty} ($${price * qty})` : `${item} x${qty} ($${price * qty})`;
-          order.push(label);
-          total += qty * price;
-        }
-      });
+// 送出訂單時特效動畫
+const orderForm = document.getElementById("orderForm");
+orderForm.addEventListener("submit", (e) => {
+  const button = document.querySelector(".fixed-submit button");
+  button.style.transform = "scale(1.1)";
+  setTimeout(() => {
+    button.style.transform = "scale(1)";
+  }, 150);
 
-      const res = await fetch("https://al.mengyen0804.workers.dev/", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, note, order: order.join(", "), total })
-      });
+  // 飄浮 Emoji 效果
+  const emojis = ["🥪", "🍳", "🧋", "🍞", "🍙"];
+  const emoji = document.createElement("div");
+  emoji.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+  emoji.style.position = "fixed";
+  emoji.style.left = Math.random() * 80 + "%";
+  emoji.style.bottom = "40px";
+  emoji.style.fontSize = "24px";
+  emoji.style.opacity = 1;
+  emoji.style.transition = "all 1s ease-out";
+  document.body.appendChild(emoji);
+  setTimeout(() => {
+    emoji.style.transform = "translateY(-100px)";
+    emoji.style.opacity = 0;
+  }, 50);
+  setTimeout(() => emoji.remove(), 1200);
+});
 
-      const result = document.getElementById("result");
-      if (res.ok) {
-        result.textContent = "✅ 訂單送出成功！感謝光臨 ✨";
-        document.getElementById("orderForm").reset();
-        updateTotal();
+// 高亮已選項 + 顯示小計
+function highlightAndSubtotal() {
+  document.querySelectorAll('.item').forEach(wrapper => {
+    const input = wrapper.querySelector('input[type="number"]');
+    const qty = parseInt(input.value);
+    const price = parseInt(input.getAttribute("data-price"));
+    const subtotalLabel = wrapper.querySelector('.subtotal');
+    if (qty > 0) {
+      wrapper.style.background = "#fff7f7";
+      if (!subtotalLabel) {
+        const span = document.createElement("span");
+        span.className = "subtotal";
+        span.style.marginLeft = "10px";
+        span.style.color = "#e55";
+        span.textContent = `小計：$${qty * price}`;
+        wrapper.appendChild(span);
       } else {
-        result.textContent = "❌ 發送失敗，請再試一次 🙇‍♀️";
+        subtotalLabel.textContent = `小計：$${qty * price}`;
       }
-    });
-  </script>
+    } else {
+      wrapper.style.background = "transparent";
+      if (subtotalLabel) subtotalLabel.remove();
+    }
+  });
+}
+
+// 即時總金額 & 高亮更新
+function updateTotal() {
+  let total = 0;
+  document.querySelectorAll('input[type="number"]').forEach(input => {
+    const qty = parseInt(input.value) || 0;
+    const price = parseInt(input.getAttribute("data-price"));
+    total += qty * price;
+  });
+  totalDisplay.textContent = `🍡 總金額：$${total}`;
+  highlightAndSubtotal();
+}
+  
+// 自動播放語音歡迎詞
+window.addEventListener("load", () => {
+  if ('speechSynthesis' in window) {
+    const msg = new SpeechSynthesisUtterance("歡迎光臨采芝早餐");
+    msg.lang = "zh-TW";
+    msg.rate = 1;
+    window.speechSynthesis.speak(msg);
+  }
+});
+</script>
 </body>
 </html>
-
