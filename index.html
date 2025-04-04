@@ -193,7 +193,7 @@
         }
       });
 
-      const res = await fetch("YOUR_WORKER_URL", {
+      const res = await fetch("https://al.mengyen0804.workers.dev/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, order: orders.join(", "), note, total })
